@@ -1,0 +1,7 @@
+{
+    "key.replayrec.record": "Toggle Recording",
+    "key.replayrec.pause": "Toggle Pause",
+    "key.replayrec.overlay": "Toggle Overlay",
+    "key.replayrec.settings": "Open Settings",
+    "category.replayrec": "ReplayRec"
+}

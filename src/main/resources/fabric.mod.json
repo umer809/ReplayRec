@@ -1,0 +1,22 @@
+{
+    "schemaVersion": 1,
+    "id": "replayrec",
+    "version": "${version}",
+    "name": "ReplayRec",
+    "description": "OBS-like gameplay recording mod for Minecraft",
+    "authors": ["ReplayRec"],
+    "contact": {},
+    "license": "MIT",
+    "icon": "assets/replayrec/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "client": ["com.replayrec.ReplayRecMod"]
+    },
+    "mixins": ["replayrec.mixins.json"],
+    "depends": {
+        "fabricloader": ">=0.16.0",
+        "fabric-api": "*",
+        "minecraft": "~1.21.4",
+        "java": ">=21"
+    }
+}
