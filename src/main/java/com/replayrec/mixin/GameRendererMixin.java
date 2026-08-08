@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class GameRendererMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void onFrameRendered(float tickDelta, long nanoTime, boolean renderBlock, CallbackInfo ci) {
+    private void onFrameRendered(net.minecraft.client.render.tick_counter.TickCounter tickCounter, boolean tick, CallbackInfo ci) {
         RecordingManager manager = RecordingManager.getInstance();
         if (manager.isRecording() && !manager.isPaused()) {
             manager.enqueueFrame(() -> {});
