@@ -10,6 +10,9 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -72,11 +75,8 @@ public class VideoEncoder {
     public synchronized void encodeAudioSamples(short[] samples, int sampleRate, int channels) {
         if (!isRecording || recorder == null || !config.isCaptureGameAudio()) return;
         try {
-            org.bytedeco.javacv.Frame frame = new org.bytedeco.javacv.Frame();
-            frame.sampleRate = sampleRate;
-            frame.audioChannels = channels;
-            frame.data = new short[][] { samples };
-            recorder.recordSamples(frame);
+            ShortBuffer buffer = ShortBuffer.wrap(samples);
+            recorder.recordSamples(sampleRate, channels, buffer);
         } catch (Exception e) {
             ReplayRecMod.LOGGER.error("Failed to encode audio", e);
         }

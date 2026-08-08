@@ -2,17 +2,9 @@ package com.replayrec.recording;
 
 import com.replayrec.ReplayRecMod;
 import com.replayrec.config.ModConfig;
-import net.minecraft.client.MinecraftClient;
-import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.ALC10;
-import org.lwjgl.openal.ALC;
-import org.lwjgl.openal.ALCCapabilities;
 
 import javax.sound.sampled.*;
-import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 
 public class AudioCapture {
     private AudioCaptureThread captureThread;
@@ -43,11 +35,6 @@ public class AudioCapture {
             captureThread = null;
         }
         ReplayRecMod.LOGGER.info("Audio capture stopped");
-    }
-
-    @FunctionalInterface
-    public interface Consumer<T> {
-        void accept(T t);
     }
 
     private class AudioCaptureThread extends Thread {
