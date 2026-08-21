@@ -73,7 +73,7 @@ public class VideoRenderer {
 
     private BufferedImage getFrameImage(RecordingFrame frame) {
         if (frame.image != null) {
-            return frame.toBufferedImage();
+            return frame.image;
         }
 
         File frameFile = new File("frame_" + frame.frameNumber + ".png");
