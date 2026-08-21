@@ -3,9 +3,11 @@ package com.replayrec.recording;
 import com.replayrec.ReplayRecMod;
 import com.replayrec.config.ModConfig;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
 import org.lwjgl.opengl.GL11;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -126,7 +128,7 @@ public class RecordingManager {
             int width = client.getWindow().getFramebufferWidth();
             int height = client.getWindow().getFramebufferHeight();
 
-            NativeImage image = captureFramebuffer(width, height);
+            BufferedImage image = captureFramebuffer(width, height);
 
             RecordingFrame frame = new RecordingFrame(
                     frameCount++,
@@ -148,8 +150,8 @@ public class RecordingManager {
         }
     }
 
-    private NativeImage captureFramebuffer(int width, int height) {
-        NativeImage image = new NativeImage(width, height, true);
+    private BufferedImage captureFramebuffer(int width, int height) {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         ByteBuffer buffer = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder());
 
         GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
@@ -158,11 +160,10 @@ public class RecordingManager {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int srcIdx = ((height - 1 - y) * width + x) * 4;
-                byte r = buffer.get(srcIdx);
-                byte g = buffer.get(srcIdx + 1);
-                byte b = buffer.get(srcIdx + 2);
-                int color = ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
-                image.setColor(x, y, color);
+                int r = buffer.get(srcIdx) & 0xFF;
+                int g = buffer.get(srcIdx + 1) & 0xFF;
+                int b = buffer.get(srcIdx + 2) & 0xFF;
+                image.setRGB(x, y, (r << 16) | (g << 8) | b);
             }
         }
 
@@ -173,9 +174,8 @@ public class RecordingManager {
         if (frame.savedToDisk || frame.image == null) return;
         try {
             Path framePath = currentRecordingPath.resolve("frame_" + frame.frameNumber + ".png");
-            frame.image.writeTo(framePath);
+            ImageIO.write(frame.image, "png", framePath.toFile());
             frame.savedToDisk = true;
-            frame.image.close();
             frame.image = null;
         } catch (IOException e) {
             ReplayRecMod.LOGGER.error("Failed to save frame {}", frame.frameNumber, e);
