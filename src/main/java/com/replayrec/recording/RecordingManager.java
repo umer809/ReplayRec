@@ -28,11 +28,11 @@ public class RecordingManager {
     private volatile boolean recording;
     private Thread recordingThread;
     private int frameCount;
-    private int tickSkipCounter;
     private long recordingStartTime;
     private Path currentRecordingPath;
 
-    private static final int CAPTURE_SCALE = 2;
+    private static final int THUMB_WIDTH = 320;
+    private static final int THUMB_HEIGHT = 180;
 
     public static RecordingManager getInstance() {
         if (INSTANCE == null) INSTANCE = new RecordingManager();
@@ -58,7 +58,6 @@ public class RecordingManager {
         frameBuffer.clear();
         savedFrames.clear();
         frameCount = 0;
-        tickSkipCounter = 0;
         recording = true;
         recordingStartTime = System.currentTimeMillis();
 
@@ -98,28 +97,25 @@ public class RecordingManager {
 
     private void recordingLoop() {
         MinecraftClient client = MinecraftClient.getInstance();
-        long frameTime = 1000L / config.recordingFPS;
+        long frameInterval = 1000L / Math.min(config.recordingFPS, 15);
         long maxDuration = config.maxRecordingMinutes * 60L * 1000L;
 
         while (recording) {
             long loopStart = System.currentTimeMillis();
 
             if (System.currentTimeMillis() - recordingStartTime >= maxDuration) {
-                ReplayRecMod.LOGGER.info("Max recording time reached, stopping");
+                ReplayRecMod.LOGGER.info("Max recording time reached");
                 client.execute(this::stopRecording);
                 break;
             }
 
-            tickSkipCounter++;
-            if (tickSkipCounter % 2 == 0) {
-                client.execute(() -> {
-                    if (!recording || client.player == null || client.gameRenderer == null) return;
-                    captureFrame(client);
-                });
-            }
+            client.execute(() -> {
+                if (!recording || client.player == null) return;
+                captureThumbnail(client);
+            });
 
             long elapsed = System.currentTimeMillis() - loopStart;
-            long sleepTime = frameTime - elapsed;
+            long sleepTime = frameInterval - elapsed;
             if (sleepTime > 0) {
                 try {
                     Thread.sleep(sleepTime);
@@ -130,19 +126,41 @@ public class RecordingManager {
         }
     }
 
-    private void captureFrame(MinecraftClient client) {
+    private void captureThumbnail(MinecraftClient client) {
         try {
-            int fullWidth = client.getWindow().getFramebufferWidth();
-            int fullHeight = client.getWindow().getFramebufferHeight();
-            int width = fullWidth / CAPTURE_SCALE;
-            int height = fullHeight / CAPTURE_SCALE;
+            int fbWidth = client.getWindow().getFramebufferWidth();
+            int fbHeight = client.getWindow().getFramebufferHeight();
 
-            BufferedImage image = captureFramebuffer(width, height);
+            float scaleX = (float) THUMB_WIDTH / fbWidth;
+            float scaleY = (float) THUMB_HEIGHT / fbHeight;
+            float scale = Math.min(scaleX, scaleY);
+            int readWidth = (int) (fbWidth * scale);
+            int readHeight = (int) (fbHeight * scale);
+
+            ByteBuffer buffer = ByteBuffer.allocateDirect(readWidth * readHeight * 4).order(ByteOrder.nativeOrder());
+
+            GL11.glReadPixels(0, 0, readWidth, readHeight, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
+
+            BufferedImage image = new BufferedImage(THUMB_WIDTH, THUMB_HEIGHT, BufferedImage.TYPE_INT_RGB);
+            buffer.rewind();
+            for (int y = 0; y < readHeight; y++) {
+                for (int x = 0; x < readWidth; x++) {
+                    int srcIdx = ((readHeight - 1 - y) * readWidth + x) * 4;
+                    int r = buffer.get(srcIdx) & 0xFF;
+                    int g = buffer.get(srcIdx + 1) & 0xFF;
+                    int b = buffer.get(srcIdx + 2) & 0xFF;
+                    int dstX = (int) (x / scale);
+                    int dstY = (int) (y / scale);
+                    if (dstX < THUMB_WIDTH && dstY < THUMB_HEIGHT) {
+                        image.setRGB(dstX, dstY, (r << 16) | (g << 8) | b);
+                    }
+                }
+            }
 
             RecordingFrame frame = new RecordingFrame(
                     frameCount++,
                     System.currentTimeMillis() - recordingStartTime,
-                    image, width, height
+                    image, THUMB_WIDTH, THUMB_HEIGHT
             );
 
             frameBuffer.offer(frame);
@@ -157,26 +175,6 @@ public class RecordingManager {
         } catch (Exception e) {
             ReplayRecMod.LOGGER.error("Failed to capture frame", e);
         }
-    }
-
-    private BufferedImage captureFramebuffer(int width, int height) {
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        ByteBuffer buffer = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder());
-
-        GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
-
-        buffer.rewind();
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int srcIdx = ((height - 1 - y) * width + x) * 4;
-                int r = buffer.get(srcIdx) & 0xFF;
-                int g = buffer.get(srcIdx + 1) & 0xFF;
-                int b = buffer.get(srcIdx + 2) & 0xFF;
-                image.setRGB(x, y, (r << 16) | (g << 8) | b);
-            }
-        }
-
-        return image;
     }
 
     private void saveFrameToDisk(RecordingFrame frame) {
