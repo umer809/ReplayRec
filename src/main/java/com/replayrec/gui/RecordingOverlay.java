@@ -13,9 +13,7 @@ public class RecordingOverlay {
     private boolean visible = true;
 
     public static RecordingOverlay getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new RecordingOverlay();
-        }
+        if (INSTANCE == null) INSTANCE = new RecordingOverlay();
         return INSTANCE;
     }
 
@@ -23,10 +21,6 @@ public class RecordingOverlay {
         HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
             getInstance().render(drawContext);
         });
-    }
-
-    public void toggle() {
-        visible = !visible;
     }
 
     public void render(DrawContext context) {
@@ -42,30 +36,25 @@ public class RecordingOverlay {
         int y = 10;
         int lineHeight = textRenderer.fontHeight + 2;
 
-        String status = manager.isPaused() ? "PAUSED" : "REC";
-        Formatting statusColor = manager.isPaused() ? Formatting.YELLOW : Formatting.RED;
+        context.fill(x - 2, y - 2, x + 120, y + lineHeight * 3 + 4, 0x80000000);
 
-        context.fill(x - 2, y - 2, x + 80, y + lineHeight + 2, 0x80000000);
-
+        String status = "● REC";
         context.drawTextWithShadow(
-            textRenderer,
-            Text.literal("● " + status).formatted(statusColor),
-            x, y, 0xFFFFFF
+                textRenderer,
+                Text.literal(status).formatted(Formatting.RED),
+                x, y, 0xFFFFFF
         );
 
         long duration = manager.getRecordingDurationMs() / 1000;
         String time = String.format("%02d:%02d:%02d",
-            duration / 3600,
-            (duration % 3600) / 60,
-            duration % 60
-        );
-
+                duration / 3600,
+                (duration % 3600) / 60,
+                duration % 60);
         context.drawTextWithShadow(textRenderer, time, x, y + lineHeight, 0xFFFFFF);
 
-        String fps = String.format("%.1f FPS", manager.getCurrentFps());
-        context.drawTextWithShadow(textRenderer, fps, x, y + lineHeight * 2, 0xAAAAAA);
-
-        long frames = manager.getFrameCount();
-        context.drawTextWithShadow(textRenderer, frames + " frames", x, y + lineHeight * 3, 0xAAAAAA);
+        String frames = manager.getFrameCount() + " frames";
+        context.drawTextWithShadow(textRenderer, frames, x, y + lineHeight * 2, 0xAAAAAA);
     }
+
+    public void toggle() { visible = !visible; }
 }

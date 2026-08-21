@@ -1,7 +1,10 @@
 {
-    "key.replayrec.record": "Toggle Recording",
-    "key.replayrec.pause": "Toggle Pause",
-    "key.replayrec.overlay": "Toggle Overlay",
-    "key.replayrec.settings": "Open Settings",
+    "key.replayrec.toggle_recording": "Toggle Recording",
+    "key.replayrec.open_editor": "Open Editor",
+    "key.replayrec.quick_save": "Quick Save",
+    "key.replayrec.toggle_audio": "Toggle Audio",
+    "key.replayrec.play_pause": "Play/Pause",
+    "key.replayrec.rewind_5s": "Rewind 5s",
+    "key.replayrec.forward_5s": "Forward 5s",
     "category.replayrec": "ReplayRec"
 }

@@ -12,10 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class GameRendererMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void onFrameRendered(RenderTickCounter deltaTracker, boolean tick, CallbackInfo ci) {
-        RecordingManager manager = RecordingManager.getInstance();
-        if (manager.isRecording() && !manager.isPaused()) {
-            manager.enqueueFrame(() -> {});
-        }
+    private void onFrameRendered(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
+        // Placeholder for future render-time hooks
     }
 }

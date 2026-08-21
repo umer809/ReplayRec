@@ -3,7 +3,7 @@
     "id": "replayrec",
     "version": "${version}",
     "name": "ReplayRec",
-    "description": "OBS-like gameplay recording mod for Minecraft",
+    "description": "Lunar Rewind-style recording mod for Minecraft",
     "authors": ["ReplayRec"],
     "contact": {},
     "license": "MIT",
