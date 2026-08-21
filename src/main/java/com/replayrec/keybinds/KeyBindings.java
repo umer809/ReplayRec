@@ -16,7 +16,7 @@ public class KeyBindings {
 
     public static void register() {
         TOGGLE_RECORDING = registerKey("key.replayrec.toggle_recording", GLFW.GLFW_KEY_R);
-        OPEN_EDITOR = registerKey("key.replayrec.open_editor", GLFW.GLFW_KEY_E);
+        OPEN_EDITOR = registerKey("key.replayrec.open_editor", GLFW.GLFW_KEY_HOME);
         QUICK_SAVE = registerKey("key.replayrec.quick_save", GLFW.GLFW_KEY_F9);
         TOGGLE_AUDIO = registerKey("key.replayrec.toggle_audio", GLFW.GLFW_KEY_F10);
         PLAY_PAUSE = registerKey("key.replayrec.play_pause", GLFW.GLFW_KEY_SPACE);

@@ -28,8 +28,11 @@ public class RecordingManager {
     private volatile boolean recording;
     private Thread recordingThread;
     private int frameCount;
+    private int tickSkipCounter;
     private long recordingStartTime;
     private Path currentRecordingPath;
+
+    private static final int CAPTURE_SCALE = 2;
 
     public static RecordingManager getInstance() {
         if (INSTANCE == null) INSTANCE = new RecordingManager();
@@ -55,6 +58,7 @@ public class RecordingManager {
         frameBuffer.clear();
         savedFrames.clear();
         frameCount = 0;
+        tickSkipCounter = 0;
         recording = true;
         recordingStartTime = System.currentTimeMillis();
 
@@ -106,10 +110,13 @@ public class RecordingManager {
                 break;
             }
 
-            client.execute(() -> {
-                if (!recording || client.player == null || client.gameRenderer == null) return;
-                captureFrame(client);
-            });
+            tickSkipCounter++;
+            if (tickSkipCounter % 2 == 0) {
+                client.execute(() -> {
+                    if (!recording || client.player == null || client.gameRenderer == null) return;
+                    captureFrame(client);
+                });
+            }
 
             long elapsed = System.currentTimeMillis() - loopStart;
             long sleepTime = frameTime - elapsed;
@@ -125,8 +132,10 @@ public class RecordingManager {
 
     private void captureFrame(MinecraftClient client) {
         try {
-            int width = client.getWindow().getFramebufferWidth();
-            int height = client.getWindow().getFramebufferHeight();
+            int fullWidth = client.getWindow().getFramebufferWidth();
+            int fullHeight = client.getWindow().getFramebufferHeight();
+            int width = fullWidth / CAPTURE_SCALE;
+            int height = fullHeight / CAPTURE_SCALE;
 
             BufferedImage image = captureFramebuffer(width, height);
 
